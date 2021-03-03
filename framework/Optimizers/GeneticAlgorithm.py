@@ -216,10 +216,15 @@ class GeneticAlgorithm(RavenSampled):
         contentType=InputTypes.StringType,
         printPriority=108,
         descr=r"""a subnode containing the implemented fitness functions.
-                  This includes: a.    invLinear: $fitness = \frac{1}{a \times obj + b \times penalty}$.
-                                 b.    logistic: $fitness = \frac{1}{1+e^{a \times (obj-b)}}$""")
+                  This includes: a.    invLinear: $fitness = -(a \\times obj + b \\times penalty)$.
+                                 b.    logistic: $fitness = \\frac{1}{1+e^{a \\times (obj-b)}}$.
+                                 c.    feasibleFirst: $fitness = \[ \\begin{cases}
+                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
+                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
+                                                                    \\end{cases}
+                                                                \]$""")
     fitness.addParam("type", InputTypes.StringType, True,
-                     descr=r"""[invLin, logistic]""")
+                     descr=r"""[invLin, logistic, feasibleFirst]""")
     objCoeff = InputData.parameterInputFactory('a', strictMode=True,
         contentType=InputTypes.FloatType,
         printPriority=108,
@@ -316,8 +321,8 @@ class GeneticAlgorithm(RavenSampled):
     # Fitness
     fitnessNode = gaParamsNode.findFirst('fitness')
     self._fitnessType = fitnessNode.parameterValues['type']
-    self._objCoeff = fitnessNode.findFirst('a').value
-    self._penaltyCoeff = fitnessNode.findFirst('b').value
+    self._objCoeff = fitnessNode.findFirst('a').value if fitnessNode.findFirst('a') is not None else None
+    self._penaltyCoeff = fitnessNode.findFirst('b').value if fitnessNode.findFirst('b') is not None else None
     self._fitnessInstance = fitnessReturnInstance(self,name = self._fitnessType)
     self._repairInstance = repairReturnInstance(self,name='replacementRepair')  # currently only replacement repair is implemented,
                                                                                 # if other repair methods are implemented then
@@ -405,10 +410,25 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None)
-    objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
-    acceptable = 'first' if self.counter==1 else 'accepted'
     population = self._datasetToDataArray(rlz) # TODO: rename
+    objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
+    # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
+    # and all x's (individuals) in the population
+    g0 = np.zeros((np.shape(population)[0],len(self._constraintFunctions)+len(self._impConstraintFunctions)))
+    g = xr.DataArray(g0,
+                     dims=['chromosome','Constraint'],
+                     coords={'chromosome':np.arange(np.shape(population)[0]),
+                             'Constraint':[y.name for y in (self._constraintFunctions + self._impConstraintFunctions)]})
+    for index,individual in enumerate(population):
+      newOpt = individual
+      opt = objectiveVal[index]
+      for constIndex,constraint in enumerate(self._constraintFunctions + self._impConstraintFunctions):
+        if constraint in self._constraintFunctions:
+          g.data[index, constIndex] = self._handleExplicitConstraints(newOpt,constraint)
+        else:
+          g.data[index, constIndex] = self._handleImplicitConstraints(newOpt, opt,constraint)
+    fitness = self._fitnessInstance(rlz, objVar=self._objectiveVar, a=self._objCoeff, b=self._penaltyCoeff, penalty=None,constraintFunction=g)
+    acceptable = 'first' if self.counter==1 else 'accepted'
     self._collectOptPoint(population,fitness,objectiveVal)
     self._resolveNewGeneration(traj, rlz, objectiveVal, fitness, info)
 
@@ -497,6 +517,17 @@ class GeneticAlgorithm(RavenSampled):
                                       'Gene':list(self.toBeSampled)})
     return dataset
 
+  def _dataarrayToDict(self,SinglePointDataarray):
+    """
+      Converts the point from realization DataSet to a Dictionary
+      @ In, SingleRlzDataset, xr.dataarray, the data array containing a single point in the realization
+      @ Out, pointDict, dict, a dictionary containing the realization with
+    """
+    pointDict={}
+    for var in self.toBeSampled:
+      pointDict[var] = SinglePointDataarray.loc[var].data
+    return pointDict
+
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
       Submits a single run with associated info to the submission queue
@@ -512,7 +543,8 @@ class GeneticAlgorithm(RavenSampled):
     info.update({'traj': traj,
                   'step': step
                 })
-    # NOTE: explicit constraints have been checked before this!
+    # NOTE: Currently, GA treats explicit and implicit constraints similarly
+    # while box constraints (Boundary constraints) are automatically handled via limits of the distribution
     #
     self.raiseADebug('Adding run to queue: {} | {}'.format(self.denormalizeData(point), info))
     self._submissionQueue.append((point, info))
@@ -584,18 +616,18 @@ class GeneticAlgorithm(RavenSampled):
                                                         old, dict, old opt point
                                                         rejectReason, str, reject reason of opt point, or return None if accepted
     """
-    acceptable = 'accepted'
-    try:
-      old, _ = self._optPointHistory[traj][-1]
-    except IndexError:
-      # if first sample, simply assume it's better!
-      acceptable = 'first'
-      old = None
-    self._acceptHistory[traj].append(acceptable)
-    self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    rejectionReason = None
-
-    return acceptable, old, rejectionReason
+    # acceptable = 'accepted'
+    # try:
+    #   old, _ = self._optPointHistory[traj][-1]
+    # except IndexError:
+    #   # if first sample, simply assume it's better!
+    #   acceptable = 'first'
+    #   old = None
+    # self._acceptHistory[traj].append(acceptable)
+    # self.raiseADebug(' ... {a}!'.format(a=acceptable))
+    # rejectionReason = None
+  #   return acceptable, old, rejectionReason
+    pass # TODO: This method is not needed but it was defined as an abstract
 
   def checkConvergence(self, traj, new, old):
     """
@@ -791,15 +823,109 @@ class GeneticAlgorithm(RavenSampled):
     """
   pass
 
-  def _applyFunctionalConstraints(self, suggested, previous):
+  # * * * * * * * * * * * *
+  # Constraint Handling
+  def _handleExplicitConstraints(self, point, constraint):
     """
-      applies functional constraints of variables in "suggested" -> DENORMED point expected!
+      Considers all explicit (i.e. input-based) constraints
+      @ In,
+      @ Out,
+    """
+    g = self._applyFunctionalConstraints(point, constraint)
+    return g
+
+  def _handleImplicitConstraints(self, point, opt,constraint):
+    """
+      Handles all Implicit (i.e. output- or output-input-based) constraints
+      @ In,
+      @ Out,
+    """
+    g = self._checkImpFunctionalConstraints(point, opt, constraint)
+    return g
+
+  def _checkFunctionalConstraints(self, point, constraint):
+    """
+      Checks that provided point does not violate functional constraints
+      @ In, point, dict, suggested point to submit (denormalized)
+      @ Out, allOkay, bool, False if violations found else True
+    """
+    inputs = self._dataarrayToDict(point)
+    inputs.update(self.constants)
+    g = constraint.evaluate('constrain', inputs)
+    return g
+
+  # def _applyBoundaryConstraints(self, point):
+  #   """
+  #     Checks and fixes boundary constraints of variables in "point" -> DENORMED point expected!
+  #     @ In, point, dict, potential point against which to check
+  #     @ Out, point, dict, adjusted variables
+  #     @ Out, modded, bool, whether point was modified or not
+  #   """
+  #   # TODO should some of this go into the parent Optimizer class, such as the boundary acquiring?
+  #   modded = False
+  #   for var in self.toBeSampled:
+  #     dist = self.distDict[var]
+  #     val = point[var]
+  #     lower = dist.lowerBound
+  #     upper = dist.upperBound
+  #     if val < lower:
+  #       self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} lower bound: {:1.3e} under by {:1.3e}'
+  #                         .format(var, val, lower, lower - val))
+  #       self.raiseADebug(' ... -> for point {}'.format(point))
+  #       point[var] = lower
+  #       modded = True
+  #     elif val > upper:
+  #       self.raiseADebug(' BOUNDARY VIOLATION "{}" suggested value: {:1.3e} upper bound: {:1.3e} over by {:1.3e}'
+  #                         .format(var, val, upper, val - upper))
+  #       self.raiseADebug(' ... -> for point {}'.format(point))
+  #       point[var] = upper
+  #       modded = True
+  #   return point, modded
+
+  # def _checkBoundaryConstraints(self, point):
+  #   """
+  #     Checks (NOT fixes) boundary constraints of variables in "point" -> DENORMED point expected!
+  #     @ In, point, dict, potential point against which to check
+  #     @ Out, okay, bool, True if no constraints violated
+  #   """
+  #   okay = True
+  #   for var in self.toBeSampled:
+  #     dist = self.distDict[var]
+  #     val = point[var]
+  #     lower = dist.lowerBound
+  #     upper = dist.upperBound
+  #     if val < lower or val > upper:
+  #       okay = False
+  #       break
+  #   return okay
+
+
+  def _applyFunctionalConstraints(self, suggested, constraint):
+    """
+      fixes functional constraints of variables in "point" -> DENORMED point expected!
       @ In, suggested, dict, potential point to apply constraints to
       @ In, previous, dict, previous opt point in consideration
-      @ Out, point, dict, adjusted variables
-      @ Out, modded, bool, whether point was modified or not
+      @ Out, g, float, value of constraint function at the suggested point
     """
-    self.raiseAnError(NotImplementedError, 'Constraint Handling is not implemented yet!')
+    # are we violating functional constraints?
+    g = self._checkFunctionalConstraints(suggested, constraint)
+    return g
+
+  def _checkImpFunctionalConstraints(self, point,opt,impConstraint):
+    """
+      Checks that provided point does not violate implicit functional constraints
+      @ In,
+      @ Out, g, float, implicit constraint function evaluation
+    """
+    inputs = self._dataarrayToDict(point)
+    inputs.update(self.constants)
+    inputs[self._objectiveVar] = opt
+    g = impConstraint.evaluate('implicitConstrain', inputs)
+    return g
+
+  # END constraint handling
+  # * * * * * * * * * * * *
+
 
   def _addToSolutionExport(self, traj, rlz, acceptable):
     """
