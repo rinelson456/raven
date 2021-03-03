@@ -611,22 +611,7 @@ class GeneticAlgorithm(RavenSampled):
     """
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
-      @ Out, (acceptable, old, rejectionReason), tuple, tuple which contains the following three items:
-                                                        acceptable, str, acceptability condition for point
-                                                        old, dict, old opt point
-                                                        rejectReason, str, reject reason of opt point, or return None if accepted
     """
-    # acceptable = 'accepted'
-    # try:
-    #   old, _ = self._optPointHistory[traj][-1]
-    # except IndexError:
-    #   # if first sample, simply assume it's better!
-    #   acceptable = 'first'
-    #   old = None
-    # self._acceptHistory[traj].append(acceptable)
-    # self.raiseADebug(' ... {a}!'.format(a=acceptable))
-    # rejectionReason = None
-  #   return acceptable, old, rejectionReason
     pass # TODO: This method is not needed but it was defined as an abstract
 
   def checkConvergence(self, traj, new, old):
