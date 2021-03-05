@@ -22,7 +22,7 @@ import numpy as np
 import math
 
 def evaluate(x,y):
-  return -0.1*x*y
+  return 0.1*x*y
 
 def constraint(x,y):
   rT = 1.0

@@ -66,12 +66,19 @@ def feasibleFirst(rlz,**kwargs):
     Efficient Parameter-less Feasible First Penalty Fitness method
     .. math::
 
-    fitness = \\frac{}{}
+    fitness = \[ \\begin{cases}
+                                                                      -obj & g_j(x)\\geq 0 \\forall j \\
+                                                                      -obj_{worst} - \\Sigma_{j=1}^{J}<g_j(x)> & otherwise \\
+                                                                    \\end{cases}
+                                                                \]
 
-    @ In,
+    @ In, rlz, xr.Dataset, containing the evaluation of a certain
+              set of individuals (can be the initial population for the very first iteration,
+              or a population of offsprings)
     @ In, kwargs, dict, dictionary of parameters for this fitness method:
           objVar, string, the name of the objective variable
-    @ Out, fitness, float, the fitness function of the given objective corresponding to a specific chromosome.
+          'constraintFunction', xr.Dataarray, containing all constraint functions (explicit and implicit) evaluations for the whole population
+    @ Out, fitness, xr.Dataarray, the fitness function of the given objective corresponding to a specific chromosome.
   """
   objVar = kwargs['objVar']
   g = kwargs['constraintFunction']

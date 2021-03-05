@@ -43,10 +43,10 @@
   <Distributions>
     <Uniform name='simionescu_dist_x'>
       <lowerBound>-1.25</lowerBound>
-      <upperBound>2</upperBound>
+      <upperBound>1.25</upperBound>
     </Uniform>
     <Uniform name='simionescu_dist_y'>
-      <lowerBound>-2</lowerBound>
+      <lowerBound>-1.25</lowerBound>
       <upperBound>1.25</upperBound>
     </Uniform>
   </Distributions>
@@ -54,14 +54,13 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>30</limit>
+        <limit>5</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
-        <!-- <type>max</type> -->
       </samplerInit>
 
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>40</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
         <reproduction nParents="20">
           <crossover type="onePointCrossover">
@@ -76,7 +75,7 @@
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <AHDp>0.0</AHDp>
       </convergence>
 
       <variable name="x">
@@ -96,7 +95,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>40</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -128,7 +127,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
+        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
       </PointSet>
     </DataObjects>
 

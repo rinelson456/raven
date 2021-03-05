@@ -53,15 +53,15 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>10</limit>
+        <limit>20</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
       </samplerInit>
 
       <GAparams>
-        <populationSize>50</populationSize>
+        <populationSize>30</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="20">
+        <reproduction nParents="10">
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
@@ -69,15 +69,12 @@
             <mutationProb>0.9</mutationProb>
           </mutation>
         </reproduction>
-        <fitness type="feasibleFirst">
-          <!-- <a>2.0</a>
-          <b>1.0</b> -->
-        </fitness>
+        <fitness type="feasibleFirst"></fitness>
         <survivorSelection>fitnessBased</survivorSelection>
       </GAparams>
 
       <convergence>
-        <objective>-1</objective>
+        <AHDp>0.1</AHDp>
       </convergence>
 
       <variable name="x">
@@ -98,7 +95,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>50</limit>
+        <limit>30</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x">
@@ -133,7 +130,7 @@
       </PointSet>
       <PointSet name="opt_export">
         <Input>trajID</Input>
-        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,conv_objective</Output>
+        <Output>x,y,ans,age,batchId,fitness,iteration,accepted,AHDp,conv_AHDp</Output>
       </PointSet>
     </DataObjects>
 

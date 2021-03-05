@@ -63,7 +63,7 @@ def rouletteWheel(population,**kwargs):
     roulettePointer = randomUtils.random(dim=1, samples=1)
     # initialize Probability
     counter = 0
-    if np.all(fitness.data>=0):
+    if np.all(fitness.data>=0) or np.all(fitness.data<=0):
       selectionProb = fitness.data/np.sum(fitness.data) # Share of the pie (rouletteWheel)
     else:
       # shift the fitness to be all positive

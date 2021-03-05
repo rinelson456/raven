@@ -523,7 +523,7 @@ class GeneticAlgorithm(RavenSampled):
     """
       Converts the point from realization DataSet to a Dictionary
       @ In, SingleRlzDataset, xr.dataarray, the data array containing a single point in the realization
-      @ Out, pointDict, dict, a dictionary containing the realization with
+      @ Out, pointDict, dict, a dictionary containing the realization without the objective function
     """
     pointDict={}
     for var in self.toBeSampled:
@@ -614,7 +614,7 @@ class GeneticAlgorithm(RavenSampled):
       This is an abstract method for all RavenSampled Optimizer, whereas for GA all children are accepted
       @ In, traj, int, identifier
     """
-    pass # TODO: This method is not needed but it was defined as an abstract
+    return # TODO: This method is not needed but it was defined as an abstract
 
   def checkConvergence(self, traj, new, old):
     """
@@ -788,7 +788,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    pass
+    return
 
   def _checkForImprovement(self, new, old):
     """
@@ -799,7 +799,7 @@ class GeneticAlgorithm(RavenSampled):
     """
     # This is not required for the genetic algorithms as it's handled in the probabilistic acceptance criteria
     # But since it is an abstract method it has to exist
-    return True
+    return
 
   def _rejectOptPoint(self, traj, info, old):
     """
@@ -808,37 +808,31 @@ class GeneticAlgorithm(RavenSampled):
       @ In, info, dict, meta information about the opt point
       @ In, old, dict, previous optimal point (to resubmit)
     """
-  pass
+    return
 
   # * * * * * * * * * * * *
   # Constraint Handling
   def _handleExplicitConstraints(self, point, constraint):
     """
-      Considers all explicit (i.e. input-based) constraints
-      @ In,
-      @ Out,
+      Computes explicit (i.e. input-based) constraints
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, constraint, function handler to the explicit constraint
+      @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
     """
     g = self._applyFunctionalConstraints(point, constraint)
     return g
 
   def _handleImplicitConstraints(self, point, opt,constraint):
     """
-      Handles all Implicit (i.e. output- or output-input-based) constraints
-      @ In,
-      @ Out,
+      Computes implicit (i.e. output- or output-input-based) constraints
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, opt, float, the objective value at this chromosome (point)
+      @ In, constraint, function handler to the explicit constraint
+      @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
     """
     g = self._checkImpFunctionalConstraints(point, opt, constraint)
-    return g
-
-  def _checkFunctionalConstraints(self, point, constraint):
-    """
-      Checks that provided point does not violate functional constraints
-      @ In, point, dict, suggested point to submit (denormalized)
-      @ Out, allOkay, bool, False if violations found else True
-    """
-    inputs = self._dataarrayToDict(point)
-    inputs.update(self.constants)
-    g = constraint.evaluate('constrain', inputs)
     return g
 
   def _applyFunctionalConstraints(self, suggested, constraint):
@@ -852,11 +846,26 @@ class GeneticAlgorithm(RavenSampled):
     g = self._checkFunctionalConstraints(suggested, constraint)
     return g
 
+  def _checkFunctionalConstraints(self, point, constraint):
+    """
+      evaluates the provided constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, constraint, function handler to the explicit constraint
+      @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
+    """
+    inputs = self._dataarrayToDict(point)
+    inputs.update(self.constants)
+    g = constraint.evaluate('constrain', inputs)
+    return g
+
   def _checkImpFunctionalConstraints(self, point,opt,impConstraint):
     """
-      Checks that provided point does not violate implicit functional constraints
-      @ In,
-      @ Out, g, float, implicit constraint function evaluation
+      evaluates the provided implicit constraint at the provided point
+      @ In, point, dict, the dictionary containing the chromosome (point)
+      @ In, constraint, function handler to the implicit constraint
+      @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
+                if $g_j(x)<0$, then the contraint is violated
     """
     inputs = self._dataarrayToDict(point)
     inputs.update(self.constants)
