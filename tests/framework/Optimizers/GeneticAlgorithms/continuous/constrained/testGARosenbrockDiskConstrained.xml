@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>RosenbrockDiskConstrained</WorkingDir>
+    <WorkingDir>rosenbrockDiskConstrained</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>

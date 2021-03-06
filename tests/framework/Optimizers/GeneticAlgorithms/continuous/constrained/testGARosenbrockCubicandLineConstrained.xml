@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>RosenbrockCubicandLineConstrained</WorkingDir>
+    <WorkingDir>rosenbrockCubicandLineConstrained</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
