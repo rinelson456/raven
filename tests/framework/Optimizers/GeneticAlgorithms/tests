@@ -4,7 +4,7 @@
     input = 'discrete/unconstrained/testGAMinwRep.xml'
     [./data]
       type = OrderedCSV
-      output = './discrete/unconstrained/MinwReplacement/opt_export_0.csv'
+      output = 'discrete/unconstrained/MinwReplacement/opt_export_0.csv'
       rel_err = 1e-3
       zero_threshold = 1e-5
     [../]
