@@ -17,7 +17,7 @@
   </TestInfo>
 
   <RunInfo>
-    <WorkingDir>MinwReplacementConstrained</WorkingDir>
+    <WorkingDir>MaxwReplacementSphereConstrained</WorkingDir>
     <Sequence>optimize, print</Sequence>
     <batchSize>1</batchSize>
   </RunInfo>
@@ -55,15 +55,16 @@
   <Optimizers>
     <GeneticAlgorithm name="GAopt">
       <samplerInit>
-        <limit>20</limit>
+        <limit>40</limit>
         <initialSeed>42</initialSeed>
         <writeSteps>every</writeSteps>
+        <type>max</type>
       </samplerInit>
 
       <GAparams>
-        <populationSize>20</populationSize>
+        <populationSize>40</populationSize>
         <parentSelection>rouletteWheel</parentSelection>
-        <reproduction nParents="10">
+        <reproduction nParents="20">
           <crossover type="onePointCrossover">
             <crossoverProb>0.8</crossoverProb>
           </crossover>
@@ -94,6 +95,7 @@
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
     <Constraint class='Functions' type='External'>constraint1</Constraint>
+    <Constraint class='Functions' type='External'>constraint2</Constraint>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
     </GeneticAlgorithm>
   </Optimizers>
@@ -101,7 +103,7 @@
   <Samplers>
     <MonteCarlo name="MC_samp">
       <samplerInit>
-        <limit>20</limit>
+        <limit>40</limit>
         <initialSeed>20021986</initialSeed>
       </samplerInit>
       <variable name="x1">
@@ -124,6 +126,9 @@
 
   <Functions>
     <External file="../../../../../AnalyticModels/optimizing/myLocalSum.py" name="constraint1">
+      <variables>x1,x2,x3</variables>
+    </External>
+    <External file="../../../../../AnalyticModels/optimizing/myLocalSumSphereConstraint.py" name="constraint2">
       <variables>x1,x2,x3</variables>
     </External>
   </Functions>

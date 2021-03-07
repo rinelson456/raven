@@ -117,6 +117,30 @@
     [../]
   [../]
 
+  [./MaxwReplacementSphereConstrained]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMaxwRepSphereConstrained.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MaxwReplacementSphereConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
+[./MinwReplacementConstrained]
+    type = 'RavenFramework'
+    input = 'discrete/constrained/testGAMinwRepConstrained.xml'
+    heavy = true
+    max_time = 2000
+    [./csv]
+     type = OrderedCSV
+     output = 'discrete/constrained/MinwReplacementConstrained/opt_export_0.csv'
+     rel_err = 0.001
+    [../]
+  [../]
+
   [./mishraBirdConstrained]
     type = 'RavenFramework'
     input = 'continuous/constrained/testGAMishraBirdConstrained.xml'
