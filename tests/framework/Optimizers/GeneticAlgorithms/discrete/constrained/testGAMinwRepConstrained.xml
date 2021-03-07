@@ -93,8 +93,8 @@
 
       <objective>ans</objective>
       <TargetEvaluation class="DataObjects" type="PointSet">optOut</TargetEvaluation>
-    <Constraint class='Functions' type='External'>constraint1</Constraint>
     <Sampler class="Samplers" type="MonteCarlo">MC_samp</Sampler>
+    <Constraint class='Functions' type='External'>constraint1</Constraint>
     </GeneticAlgorithm>
   </Optimizers>
 
