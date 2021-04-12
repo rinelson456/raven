@@ -33,7 +33,8 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils, randomUtils, InputData, InputTypes
+from utils import mathUtils, randomUtils, InputData, InputTypes, utils
+from utils.utils import dataarrayToDict
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
@@ -519,16 +520,16 @@ class GeneticAlgorithm(RavenSampled):
                                       'Gene':list(self.toBeSampled)})
     return dataset
 
-  def _dataarrayToDict(self,SinglePointDataarray):
-    """
-      Converts the point from realization DataSet to a Dictionary
-      @ In, SingleRlzDataset, xr.dataarray, the data array containing a single point in the realization
-      @ Out, pointDict, dict, a dictionary containing the realization without the objective function
-    """
-    pointDict={}
-    for var in self.toBeSampled:
-      pointDict[var] = SinglePointDataarray.loc[var].data
-    return pointDict
+  # def _dataarrayToDict(self,singlePointDataarray):
+  #   """
+  #     Converts the point from realization DataSet to a Dictionary
+  #     @ In, singleRlzDataset, xr.dataarray, the data array containing a single point in the realization
+  #     @ Out, pointDict, dict, a dictionary containing the realization without the objective function
+  #   """
+  #   pointDict={}
+  #   for var in self.toBeSampled:
+  #     pointDict[var] = singlePointDataarray.loc[var].data
+  #   return pointDict
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
@@ -839,7 +840,7 @@ class GeneticAlgorithm(RavenSampled):
     """
       fixes functional constraints of variables in "point" -> DENORMED point expected!
       @ In, suggested, dict, potential point to apply constraints to
-      @ In, previous, dict, previous opt point in consideration
+      @ In, constraint, , evaluation of constraint function
       @ Out, g, float, value of constraint function at the suggested point
     """
     # are we violating functional constraints?
@@ -854,7 +855,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the contraint is violated
     """
-    inputs = self._dataarrayToDict(point)
+    inputs = dataarrayToDict(point)
     inputs.update(self.constants)
     g = constraint.evaluate('constrain', inputs)
     return g
@@ -867,7 +868,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the contraint is violated
     """
-    inputs = self._dataarrayToDict(point)
+    inputs = dataarrayToDict(point)
     inputs.update(self.constants)
     inputs[self._objectiveVar] = opt
     g = impConstraint.evaluate('implicitConstrain', inputs)
