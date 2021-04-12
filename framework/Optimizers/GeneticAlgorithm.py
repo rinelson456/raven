@@ -520,17 +520,6 @@ class GeneticAlgorithm(RavenSampled):
                                       'Gene':list(self.toBeSampled)})
     return dataset
 
-  # def _dataarrayToDict(self,singlePointDataarray):
-  #   """
-  #     Converts the point from realization DataSet to a Dictionary
-  #     @ In, singleRlzDataset, xr.dataarray, the data array containing a single point in the realization
-  #     @ Out, pointDict, dict, a dictionary containing the realization without the objective function
-  #   """
-  #   pointDict={}
-  #   for var in self.toBeSampled:
-  #     pointDict[var] = singlePointDataarray.loc[var].data
-  #   return pointDict
-
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
       Submits a single run with associated info to the submission queue
