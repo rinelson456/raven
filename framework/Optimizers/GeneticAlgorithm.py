@@ -34,7 +34,7 @@ import copy
 
 #Internal Modules------------------------------------------------------------------------------------
 from utils import mathUtils, randomUtils, InputData, InputTypes, utils
-from utils.utils import dataarrayToDict
+from utils.utils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
 from .crossOverOperators.crossovers import returnInstance as crossoversReturnInstance
@@ -413,7 +413,7 @@ class GeneticAlgorithm(RavenSampled):
 
     # 5.1 @ n-1: fitnessCalculation(rlz)
     # perform fitness calculation for newly obtained children (rlz)
-    population = self._datasetToDataArray(rlz) # TODO: rename
+    population = datasetToDataArray(rlz, list(self.toBeSampled)) # TODO: rename
     objectiveVal = list(np.atleast_1d(rlz[self._objectiveVar].data))
     # Compute constraint function g_j(x) for all constraints (j = 1 .. J)
     # and all x's (individuals) in the population
@@ -505,20 +505,20 @@ class GeneticAlgorithm(RavenSampled):
           newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
 
-  def _datasetToDataArray(self,rlzDataset):
-    """
-      Converts the realization DataSet to a DataArray
-      @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
-      @ Out, dataset, xr.dataarray, a data array containing the realization with
-                     dims = ['chromosome','Gene']
-                     chromosomes are named 0,1,2...
-                     Genes are named after variables to be sampled
-    """
-    dataset = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
-                              dims=['chromosome','Gene'],
-                              coords={'chromosome': np.arange(rlzDataset[self._objectiveVar].data.size),
-                                      'Gene':list(self.toBeSampled)})
-    return dataset
+  # def _datasetToDataArray(self,rlzDataset):
+  #   """
+  #     Converts the realization DataSet to a DataArray
+  #     @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
+  #     @ Out, dataset, xr.DataArray, a data array containing the realization with
+  #                    dims = ['chromosome','Gene']
+  #                    chromosomes are named 0,1,2...
+  #                    Genes are named after variables to be sampled
+  #   """
+  #   dataset = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
+  #                             dims=['chromosome','Gene'],
+  #                             coords={'chromosome': np.arange(rlzDataset[self._objectiveVar].data.size),
+  #                                     'Gene':list(self.toBeSampled)})
+  #   return dataset
 
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
@@ -656,7 +656,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     if ('p' not in kwargs.keys() or kwargs['p'] == None):
       p = 3
     else:
@@ -680,7 +680,7 @@ class GeneticAlgorithm(RavenSampled):
       @ Out, converged, bool, convergence state
     """
     old = kwargs['old'].data
-    new = self._datasetToDataArray(kwargs['new']).data
+    new = datasetToDataArray(kwargs['new'], list(self.toBeSampled)).data
     ahd = self._ahd(old,new)
     self.ahd = ahd
     converged = (ahd < self._convergenceCriteria['AHD'])
@@ -844,7 +844,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the contraint is violated
     """
-    inputs = dataarrayToDict(point)
+    inputs = dataArrayToDict(point)
     inputs.update(self.constants)
     g = constraint.evaluate('constrain', inputs)
     return g
@@ -857,7 +857,7 @@ class GeneticAlgorithm(RavenSampled):
       @ out, g, the value g_j(x) is the value of the constraint function number j when fed with the chromosome (point)
                 if $g_j(x)<0$, then the contraint is violated
     """
-    inputs = dataarrayToDict(point)
+    inputs = dataArrayToDict(point)
     inputs.update(self.constants)
     inputs[self._objectiveVar] = opt
     g = impConstraint.evaluate('implicitConstrain', inputs)

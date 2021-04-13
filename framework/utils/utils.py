@@ -32,6 +32,8 @@ import inspect
 import subprocess
 import platform
 import copy
+import numpy as np
+import xarray as xr
 from importlib import import_module
 # import numpy # DO NOT import! See note above.
 # import six   # DO NOT import! see note above.
@@ -1065,13 +1067,29 @@ def orderClusterLabels(originalLables):
     labels[l] = new
   return labels
 
-def dataarrayToDict(singlePointDataarray):
+def dataArrayToDict(singlePointDataArray):
   """
     Converts the point from realization DataSet to a Dictionary
     @ In, singlePointDataarray, xr.dataarray, the data array containing a single point in the realization
     @ Out, pointDict, dict, a dictionary containing the realization without the objective function
   """
   pointDict={}
-  for var in singlePointDataarray.indexes['Gene']:
-    pointDict[var] = singlePointDataarray.loc[var].data
+  for var in singlePointDataArray.indexes['Gene']:
+    pointDict[var] = singlePointDataArray.loc[var].data
   return pointDict
+
+def datasetToDataArray(rlzDataset,vars):
+  """
+    Converts the realization DataSet to a DataArray
+    @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
+    @ In, vars, list, the list of decision variables
+    @ Out, dataset, xr.dataarray, a data array containing the realization with
+                   dims = ['chromosome','Gene']
+                   chromosomes are named 0,1,2...
+                   Genes are named after variables to be sampled
+  """
+  dataset = xr.DataArray(np.atleast_2d(rlzDataset[vars].to_array().transpose()),
+                            dims=['chromosome','Gene'],
+                            coords={'chromosome': np.arange(rlzDataset[vars[0]].data.size),
+                                    'Gene':vars})
+  return dataset
