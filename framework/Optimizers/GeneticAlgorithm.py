@@ -505,21 +505,6 @@ class GeneticAlgorithm(RavenSampled):
           newRlz[var] = float(daChildren.loc[i,var].values)
         self._submitRun(copy.deepcopy(newRlz), traj, self.getIteration(traj))
 
-  # def _datasetToDataArray(self,rlzDataset):
-  #   """
-  #     Converts the realization DataSet to a DataArray
-  #     @ In, rlzDataset, xr.dataset, the data set containing the batched realizations
-  #     @ Out, dataset, xr.DataArray, a data array containing the realization with
-  #                    dims = ['chromosome','Gene']
-  #                    chromosomes are named 0,1,2...
-  #                    Genes are named after variables to be sampled
-  #   """
-  #   dataset = xr.DataArray(np.atleast_2d(rlzDataset[list(self.toBeSampled)].to_array().transpose()),
-  #                             dims=['chromosome','Gene'],
-  #                             coords={'chromosome': np.arange(rlzDataset[self._objectiveVar].data.size),
-  #                                     'Gene':list(self.toBeSampled)})
-  #   return dataset
-
   def _submitRun(self, point, traj, step, moreInfo=None):
     """
       Submits a single run with associated info to the submission queue
