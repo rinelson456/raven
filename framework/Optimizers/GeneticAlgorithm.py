@@ -33,7 +33,7 @@ import copy
 #External Modules End--------------------------------------------------------------------------------
 
 #Internal Modules------------------------------------------------------------------------------------
-from utils import mathUtils, randomUtils, InputData, InputTypes, utils
+from utils import mathUtils, randomUtils, InputData, InputTypes
 from utils.utils import dataArrayToDict, datasetToDataArray
 from .RavenSampled import RavenSampled
 from .parentSelectors.parentSelectors import returnInstance as parentSelectionReturnInstance
