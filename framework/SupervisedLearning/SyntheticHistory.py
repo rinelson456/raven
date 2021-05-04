@@ -133,6 +133,7 @@ class SyntheticHistory(supervisedLearning):
         signal = algo.generate(params, pivots, settings)
       else:
         signal = 0
+
       result[:, indices] += signal
     # RAVEN realization construction
     rlz = dict((target, result[:, t]) for t, target in enumerate(self.target) if target != self.pivotParameterID)

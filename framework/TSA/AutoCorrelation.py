@@ -17,11 +17,9 @@
 import numpy as np
 
 from utils import InputData, InputTypes, xmlUtils
-from .TimeSeriesAnalyzer import  TimeSeriesCharacterizer
 
-
-# utility methods
 class AutoCorrelation( TimeSeriesCharacterizer):
+
   """
     Perform AutoCorrelation Transformation on time-dependent data.
   """
@@ -34,17 +32,21 @@ class AutoCorrelation( TimeSeriesCharacterizer):
     """
     specs = super(AutoCorrelation, cls).getInputSpecification()
     specs.name = 'AutoCorrelation'
+
     specs.description = """AutoCorrelation TimeSeriesAnalysis algorithm that characterizes the correlation of a signal. 
                            It is essentially the similarity between observations as a function of the time lag between them."""
+
     specs.addSub(InputData.parameterInputFactory(
       'nlags',
       contentType=InputTypes.IntegerType,
       descr=""" Number of lags to return autocorrelation for. """
     ))
     specs.addSub(InputData.parameterInputFactory(
+
       'confidence',
       contentType=InputTypes.FloatType,
       descr=""" If a number is given, the confidence intervals for the given level are returned. For instance if confidence=.05, 
+
       95 % confidence intervals are returned where the standard deviation is computed according to Bartlett”s formula. """
     ))
     return specs
@@ -58,7 +60,9 @@ class AutoCorrelation( TimeSeriesCharacterizer):
       @ Out, None
     """
     # general infrastructure
+
     super().__init__( *args, **kwargs)
+
 
 
   def handleInput(self, spec):
@@ -69,7 +73,9 @@ class AutoCorrelation( TimeSeriesCharacterizer):
     """
     settings = super().handleInput(spec)
     settings['nlags'] = spec.findFirst('nlags').value
+
     settings['confidence'] = spec.findFirst('confidence').value
+
     return settings
 
 
@@ -84,6 +90,7 @@ class AutoCorrelation( TimeSeriesCharacterizer):
       @ In, settings, dict, additional settings specific to this algorithm
       @ Out, params, dict, characteristic parameters
     """
+
     try:
       import statsmodels.tsa.stattools as sm
     except ModuleNotFoundError:
@@ -96,14 +103,19 @@ class AutoCorrelation( TimeSeriesCharacterizer):
     ## time-dependent series is independent, uniquely indexed and
     ## sorted in time.
     nlags = settings['nlags']
+
     alpha = settings['confidence']
+
     params = {target: {'results': {}} for target in targets}
 
     for i, target in enumerate(targets):
       results = params[target]['results']
+
       results['acf'], results['confint'] = sm.acf(signal[:, i], nlags=nlags, alpha=alpha)
 
+
     return params
+
 
 
   def writeXML(self, writeTo, params):
@@ -113,8 +125,5 @@ class AutoCorrelation( TimeSeriesCharacterizer):
       @ In, params, dict, trained parameters as from self.characterize
       @ Out, None
     """
-    # for target, info in params.items():
-    #   base = xmlUtils.newNode(target)
-    #   writeTo.append(base)
-    #   for name, value in info['results'].items():
-    #     base.append(xmlUtils.newNode(name, text=','.join([str(v) for v in value])))
+
+
